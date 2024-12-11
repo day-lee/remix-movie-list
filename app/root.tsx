@@ -1,13 +1,17 @@
+import type { LinksFunction } from "@remix-run/node";
 import {
+  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
+
+const errorMessage = "Error: Please try again later.";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,4 +46,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />;
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    console.error("ERROR!!" + error.status + error.data.message);
+    return (
+      <div className="flex flex-col justify-center items-center m-20">
+        <p>Something went wrong.</p>
+        <pre className="text-red-600">{errorMessage}</pre>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center m-20">
+        <p>Something went wrong.</p>
+        <pre className="text-red-600">{errorMessage}</pre>
+      </div>
+    );
+  }
 }
