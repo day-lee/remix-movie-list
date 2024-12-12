@@ -1,18 +1,44 @@
 import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { useLoaderData, useNavigation } from "@remix-run/react";
+import fetch from "node-fetch";
+import sharp from "sharp";
 import invariant from "tiny-invariant";
 
 import { getMovieById } from "~/api/movies";
-import { basePosterUrl } from "./movies._index";
+import fallbackImg from "../fallbackImg.png";
 
 import { Movie } from "../types";
 
-const fallbackSize = "w154";
+const fallbackSize = "w500";
+const basePosterUrl = "https://image.tmdb.org/t/p/";
 
 export const loader: LoaderFunction = async ({ params }) => {
   invariant(params.movieId, "expected params.movieId");
   const movie = await getMovieById(params.movieId);
-  return new Response(JSON.stringify(movie), {
+
+  const processedMovie = async () => {
+    const imageUrl = `${basePosterUrl}${fallbackSize}${movie.poster_path}`;
+
+    const response = await fetch(imageUrl);
+    const imageBuffer = await response.arrayBuffer();
+
+    const processedImage = await sharp(imageBuffer)
+      .resize(500)
+      .webp()
+      .toBuffer();
+
+    const processedImageUrl = `data:image/webp;base64,${processedImage.toString(
+      "base64"
+    )}`;
+
+    return {
+      ...movie,
+      poster_image_url: processedImageUrl,
+    };
+  };
+  const processedData = await processedMovie();
+
+  return new Response(JSON.stringify(processedData), {
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "public, max-age=3600, s-maxage=3600",
@@ -31,7 +57,7 @@ export default function MovieId() {
     id,
     title,
     overview,
-    poster_path,
+    poster_image_url,
     release_date,
     runtime,
     homepage,
@@ -60,9 +86,7 @@ export default function MovieId() {
           <div className="flex justify-center p-1">
             <img
               className="object-cover p-2 m-2"
-              srcSet={`${basePosterUrl}w185${poster_path} 185w, ${basePosterUrl}w342${poster_path} 342w, ${basePosterUrl}w500${poster_path} 500w`}
-              sizes="(max-width: 768px) 200px, (max-width: 1200px) 400px, 800px"
-              src={`${basePosterUrl}${fallbackSize}${poster_path}`}
+              src={poster_image_url || fallbackImg}
               alt={`${title} poster`}
               loading="lazy"
             />

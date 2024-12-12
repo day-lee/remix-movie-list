@@ -1,40 +1,50 @@
-# Welcome to Remix!
+# Remix Movie List
 
-- 📖 [Remix docs](https://remix.run/docs)
+A simple project to display a list of movies using a The Movie Database(TMDB) public API.
 
-## Development
+## Setup the project locally
 
-Run the dev server:
+Follow these steps to set up the project on your local machine:
 
-```shellscript
+1. Clone the repository
+
+```
+git clone https://github.com/day-lee/remix-movie-list.git
+```
+
+2. Install dependancy
+
+```
+cd ih-movie-list
+npm install
+```
+
+3. Create an `.env` file
+   In the root of the project directory, create a file `.env`  
+   add the following variables
+
+```
+VITE_API_KEY=<provided-api-key>
+VITE_APP_AUTH_TOKEN=<provided-token>
+```
+
+4. Start the development server
+
+```
 npm run dev
 ```
 
-## Deployment
+## Additional Information
 
-First, build your app for production:
+### Technologies Used:
 
-```sh
-npm run build
-```
+- Remix (with Vite)
+- TypeScript
+- Tailwind CSS
+- Sharp
 
-Then run the app in production mode:
+### Features:
 
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+- Displays a list of popular movies retrieved from The Movie Database (TMDB) API.
+- Shows detailed information for each movie on a separate page.
+- Responsive and acceesible design for mobile and desktop devices.

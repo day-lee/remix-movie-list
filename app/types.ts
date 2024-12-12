@@ -7,6 +7,7 @@ export interface Movie {
   runtime: number;
   homepage: string;
   tagline: string;
+  poster_image_url: string;
 }
 
 export type Data = {

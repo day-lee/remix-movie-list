@@ -1,16 +1,43 @@
 import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData, useNavigation } from "@remix-run/react";
+import fetch from "node-fetch";
+import sharp from "sharp";
 
 import { getMovies } from "~/api/movies";
+import fallbackImg from "../fallbackImg.png";
 
-import { Data, Movie } from "../types";
+import { Movie } from "../types";
 
-export const basePosterUrl = "https://image.tmdb.org/t/p/";
-const fallbackSize = "w92";
+const basePosterUrl = "https://image.tmdb.org/t/p/";
+const fallbackSize = "w185";
 
 export const loader: LoaderFunction = async () => {
   const movies = await getMovies();
-  return new Response(JSON.stringify(movies), {
+
+  const processedMovies = await Promise.all(
+    movies.results.map(async (movie: Movie) => {
+      const imageUrl = `${basePosterUrl}${fallbackSize}${movie.poster_path}`;
+
+      const response = await fetch(imageUrl);
+      const imageBuffer = await response.arrayBuffer();
+
+      const processedImage = await sharp(imageBuffer)
+        .resize(200)
+        .webp()
+        .toBuffer();
+
+      const processedImageUrl = `data:image/webp;base64,${processedImage.toString(
+        "base64"
+      )}`;
+
+      return {
+        ...movie,
+        poster_image_url: processedImageUrl,
+      };
+    })
+  );
+
+  return new Response(JSON.stringify(processedMovies), {
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "public, max-age=3600, s-maxage=3600",
@@ -24,8 +51,7 @@ export const meta: MetaFunction = () => [
 ];
 
 export default function Index() {
-  const data: Data = useLoaderData();
-  const results: Movie[] = data.results;
+  const data: Movie[] = useLoaderData();
 
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -40,8 +66,8 @@ export default function Index() {
           LOADING...
         </div>
       )}
-      {results.map((item) => {
-        const { id, poster_path, title } = item;
+      {data.map((item) => {
+        const { id, title, poster_image_url } = item;
         return (
           <Link
             title={title}
@@ -57,9 +83,7 @@ export default function Index() {
                 <div className="flex justify-center p-1">
                   <img
                     className="object-cover p-2 m-2"
-                    srcSet={`${basePosterUrl}w185${poster_path} 185w, ${basePosterUrl}w342${poster_path} 342w, ${basePosterUrl}w500${poster_path} 500w`}
-                    sizes="(max-width: 768px) 200px, (max-width: 1200px) 400px, 800px"
-                    src={`${basePosterUrl}${fallbackSize}${poster_path}`}
+                    src={poster_image_url || fallbackImg}
                     alt={`${title} poster`}
                     loading="lazy"
                   />
