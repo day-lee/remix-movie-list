@@ -1,9 +1,9 @@
-import type { Movie } from "../types";
+import { Movie } from "../types";
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 const APP_AUTH_TOKEN = import.meta.env.VITE_APP_AUTH_TOKEN;
 
-export async function getMovies() {
+export async function getMovies(title?: string | null) {
   const options = {
     method: "GET",
     headers: {
@@ -20,10 +20,14 @@ export async function getMovies() {
   if (!response.ok) {
     throw new Error("Error!");
   }
-
   const data = await response.json();
-  const results: Movie[] = data.results;
-  return { results };
+  const totalPages = data.total_pages;
+  const totalResults = data.total_results;
+  const resultsData: Movie[] = data.results.filter((movie: Movie) =>
+    title ? movie.title.toLowerCase().includes(title.toLowerCase()) : true
+  );
+  const allData = { totalPages, totalResults, resultsData };
+  return allData;
 }
 
 export async function getMovieById(movieId: string) {
